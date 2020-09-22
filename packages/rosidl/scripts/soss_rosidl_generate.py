@@ -71,13 +71,13 @@ def get_idl_from_file(idl_file, includes):
     idl = ""
     for line in unrolled_idl.splitlines():
         if line and line[0] != "#" and "structure_needs_at_least_one_member" not in line:
-            idl += line + "\n"
+            # Hotfix for problem on eprosima::xtypes parser regarding annotations. Currently,
+            # for the annotation text, if double quoted, using a single quote within the annotation's
+            # content provokes a parsing failure.
+            if line.find("'") != -1:
+                line = line.replace("'", "")
 
-        # Hotfix for problem on eprosima::xtypes parser regarding annotations. Currently,
-        # for the annotation text, if double quoted, using a single quote within the annotation's
-        # content provokes a parsing failure.
-        if line.find("'") != -1:
-            line = line.replace("'", "")
+            idl += line + "\n"
     return idl
 
 def generate_files(package, source_dir, header_dir, idl_files, cpp_files, hpp_files, prefix, parse_fnc):
