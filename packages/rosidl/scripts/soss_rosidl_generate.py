@@ -72,6 +72,8 @@ def get_idl_from_file(idl_file, includes):
     for line in unrolled_idl.splitlines():
         if line and line[0] != "#" and "structure_needs_at_least_one_member" not in line:
             idl += line + "\n"
+        if line.find("'") != -1:
+            line.replace("'", "\'")
     return idl
 
 def generate_files(package, source_dir, header_dir, idl_files, cpp_files, hpp_files, prefix, parse_fnc):
