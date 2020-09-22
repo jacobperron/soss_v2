@@ -72,6 +72,10 @@ def get_idl_from_file(idl_file, includes):
     for line in unrolled_idl.splitlines():
         if line and line[0] != "#" and "structure_needs_at_least_one_member" not in line:
             idl += line + "\n"
+
+        # Hotfix for problem on eprosima::xtypes parser regarding annotations. Currently,
+        # for the annotation text, if double quoted, using a single quote within the annotation's
+        # content provokes a parsing failure.
         if line.find("'") != -1:
             line = line.replace("'", "")
     return idl
