@@ -200,7 +200,7 @@ public:
       this->_handle_failed_connection(std::move(handle));
     });
 
-    _client.set_tls_init_handler(
+    _client.set_tcp_init_handler(
           [&](WsCppWeakConnectPtr /*handle*/) -> WsCppSslContextPtr
     {
       return this->_context;

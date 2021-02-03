@@ -49,14 +49,16 @@ static std::string find_websocket_config_file(
       .relative_to_home();
 
   const YAML::Node node = configuration[config_key];
-  if(!node)
+  //if(!node)
+  //{
+  //  std::cerr << "[soss::websocket::Server] websocket_server is missing a "
+  //            << "value for the required parameter [" << config_key
+  //            << "] " << explanation << std::endl;
+  //  return {};
+  //}
+  //
+  if (node)
   {
-    std::cerr << "[soss::websocket::Server] websocket_server is missing a "
-              << "value for the required parameter [" << config_key
-              << "] " << explanation << std::endl;
-    return {};
-  }
-
   std::vector<std::string> checked_paths;
 
   const std::string& parameter = node.as<std::string>();
@@ -78,6 +80,8 @@ static std::string find_websocket_config_file(
   }
 
   return result;
+  }
+  return "";
 }
 
 //==============================================================================
@@ -150,12 +154,12 @@ public:
     const uint16_t uport = static_cast<uint16_t>(port);
 
     const std::string cert_file = find_certificate(configuration);
-    if(cert_file.empty())
-      return nullptr;
+    //if(cert_file.empty())
+    //  return nullptr;
 
     const std::string key_file = find_private_key(configuration);
-    if(key_file.empty())
-      return nullptr;
+    //if(key_file.empty())
+    //  return nullptr;
 
     const boost::asio::ssl::context::file_format format =
         parse_format(configuration);
@@ -193,12 +197,15 @@ public:
           asio::ssl::context::no_sslv3);
 
     boost::system::error_code ec;
-    _context->use_certificate_file(cert_file, format, ec);
-    if(ec)
+    if (!cert_file.empty())
     {
-      std::cerr << "[soss::websocket::Server] Failed to load certificate file ["
-                << cert_file << "]: " << ec.message() << std::endl;
-      return false;
+    	_context->use_certificate_file(cert_file, format, ec);
+    	if(ec)
+    	{
+      	     std::cerr << "[soss::websocket::Server] Failed to load certificate file ["
+                 << cert_file << "]: " << ec.message() << std::endl;
+    	     return false;
+    	}
     }
 
     // TODO(MXG): There is an alternative function
@@ -207,12 +214,15 @@ public:
     // themselves as rsa private keys? We're currently using rsa private
     // keys, but this is probably something we should allow users to
     // configure from the soss config file.
-    _context->use_rsa_private_key_file(key_file, format, ec);
-    if(ec)
+    if (!key_file.empty())
     {
-      std::cerr << "[soss::websocket::Server] Failed to load private key file ["
+    	_context->use_rsa_private_key_file(key_file, format, ec);
+    	if(ec)
+    	{
+   	    std::cerr << "[soss::websocket::Server] Failed to load private key file ["
                 << key_file << "]: " << ec.message() << std::endl;
-      return false;
+      	    return false;
+    	}
     }
 
     // TODO(MXG): This helps to rerun soss more quickly if the server fell down
@@ -251,7 +261,7 @@ public:
       this->_handle_failed_connection(std::move(handle));
     });
 
-    _server.set_tls_init_handler(
+    _server.set_tcp_init_handler(
           [&](WsCppWeakConnectPtr /*handle*/) -> WsCppSslContextPtr
     {
       return _context;
